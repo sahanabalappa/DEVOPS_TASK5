@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Service
+metadata: 
+  name: prom-svc
+  labels:
+    name: prom-svc
+spec:
+  selector:
+    name: prom-pod
+  type: NodePort
+  ports:
+  - port: 9090
+    targetPort: 9090
+    nodePort: 32000    
+
+  
+
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prom-deployment
+  labels:
+    name: prom-deployment
+spec:
+  replicas: 1
+  selector:
+    matchExpressions:      
+    - { key: name, operator: In, values: [ prom-pod] }
+  template:
+    metadata:
+      name: prom-pod
+      labels:
+        name: prom-pod
+
+    spec:
+
+      containers:
+      - name: prom-con
+        image: raghav1674/prom:v2
+        volumeMounts:
+        - name: prom-vol
+          mountPath: /prometheus/
+        - name: prom-conf
+          mountPath: /etc/prometheus/
+      volumes:      
+      - name: prom-vol
+        persistentVolumeClaim:
+          claimName: prom-pvc
+      - name: prom-conf
+        configMap:
+          defaultMode: 420
+          name: prometheus-conf           
+
+  

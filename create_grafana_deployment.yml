@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: Service
+metadata: 
+  name: grafana-svc
+  labels:
+    name: grafana-svc
+spec:
+  selector:
+    name: grafana-pod
+  type: NodePort
+  ports:
+  - port: 3000
+    targetPort: 3000
+    nodePort: 30000    
+
+  
+
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana-deployment
+  labels:
+    name: grafana-deployment
+spec:
+  replicas: 1
+  selector:
+    matchExpressions:      
+    - { key: name, operator: In, values: [ grafana-pod] }
+  template:
+    metadata:
+      name: grafana-pod
+      labels:
+        name: grafana-pod
+
+    spec:
+
+      containers:
+      - name: grafana-con
+        image: raghav1674/grafana:v2
+        volumeMounts:
+        - name: grafana-vol
+          mountPath: /usr/share/grafana/data/
+      volumes:      
+      - name: grafana-vol
+        persistentVolumeClaim:
+          claimName: grafana-pvc
+    
+
+  
